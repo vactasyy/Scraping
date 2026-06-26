@@ -1,5 +1,15 @@
 from __future__ import annotations
 
+import subprocess
+import sys
+try:
+    subprocess.run([sys.executable, "-m", "playwright", "install", "chromium"], check=True)
+    print("Playwright Chromium browser binaries successfully installed!")
+except Exception as e:
+    print(f"Error initializing Playwright browser: {e}")
+
+from datetime import datetime
+
 import pandas as pd
 import plotly.express as px
 import streamlit as st
@@ -8,7 +18,6 @@ from analytics import build_summary, filter_listings, sort_listings
 from config import CACHE_TTL_MINUTES, DEFAULT_AREA
 from scraper import build_speedhome_url, scrape_speedhome_data, is_playwright_available
 from utils import (
-    build_download_filename,
     export_dataframe,
     format_currency,
     format_decimal,
@@ -227,14 +236,26 @@ if analyze:
     render_listings(filtered_df)
 
     export_col1, export_col2 = st.columns(2)
+    download_area_slug = (search_area.strip() or "market").replace(" ", "_")
+    stamp = datetime.now().strftime("%Y%m%d")
     with export_col1:
         csv_data = export_dataframe(filtered_df, "data/export.csv", "csv")
         with open(csv_data, "rb") as fh:
-            st.download_button("Download CSV", fh, file_name=build_download_filename(search_area.strip() or "market", "csv"), mime="text/csv")
+            st.download_button(
+                "Download CSV",
+                fh,
+                file_name=f"SPEEDHOME_{download_area_slug}_{stamp}.csv",
+                mime="text/csv",
+            )
     with export_col2:
         excel_data = export_dataframe(filtered_df, "data/export.xlsx", "excel")
         with open(excel_data, "rb") as fh:
-            st.download_button("Download Excel", fh, file_name=build_download_filename(search_area.strip() or "market", "xlsx"), mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+            st.download_button(
+                "Download Excel",
+                fh,
+                file_name=f"SPEEDHOME_{download_area_slug}_{stamp}.xlsx",
+                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            )
 
 else:
     st.info("Use the search box or paste a SPEEDHOME URL to begin analysis.")

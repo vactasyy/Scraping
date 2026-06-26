@@ -528,7 +528,7 @@ def fetch_speedhome_data_via_api(target_url: str) -> tuple[list[dict[str, Any]],
             pass
         page = context.new_page()
         # Ensure landing page cookies and client context are established before API calls.
-        page.goto("https://speedhome.com", wait_until="commit", timeout=30000)
+        page.goto("https://speedhome.com", wait_until="domcontentloaded", timeout=30000)
         page.wait_for_timeout(4000)
         page.goto(target_url, wait_until="load", timeout=30000)
         page.wait_for_timeout(3000)
@@ -547,12 +547,14 @@ def fetch_speedhome_data_via_api(target_url: str) -> tuple[list[dict[str, Any]],
             if not isinstance(content, list) or not content:
                 break
             rows.extend(extract_listings_from_api_content(content, target_url))
-            if data.get("last") or data.get("empty"):
-                total_pages = _parse_int(data.get("totalPages")) or total_pages
-                total_elements = _parse_int(data.get("totalElements")) or total_elements
+            if total_pages is None:
+                total_pages = _parse_int(data.get("totalPages"))
+            if total_elements is None:
+                total_elements = _parse_int(data.get("totalElements"))
+            if data.get("last") is True or data.get("empty") is True:
                 break
-            total_pages = _parse_int(data.get("totalPages")) if total_pages is None else total_pages
-            total_elements = _parse_int(data.get("totalElements")) if total_elements is None else total_elements
+            if len(content) < items_per_page:
+                break
             if total_pages is not None and page_index >= total_pages - 1:
                 break
             page_index += 1
