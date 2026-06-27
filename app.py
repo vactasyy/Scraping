@@ -1,15 +1,5 @@
 from __future__ import annotations
 
-import subprocess
-import sys
-
-try:
-    # Mengunduh biner browser SEKALIGUS dependensi sistem operasi Linux yang cocok secara otomatis
-    subprocess.run([sys.executable, "-m", "playwright", "install", "chromium", "--with-deps"], check=True)
-    print("Playwright Chromium and system dependencies installed successfully!")
-except Exception as e:
-    print(f"Error initializing Playwright browser/dependencies: {e}")
-
 from datetime import datetime
 
 import pandas as pd
